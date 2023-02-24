@@ -1,4 +1,7 @@
+// TODO Implement this library.
 import 'package:flutter/material.dart';
+import 'package:getlocation/add_contacts.dart';
+//import 'package:getlocation/contacts_page.dart';
 
 class NavBar extends StatelessWidget {
   @override
@@ -12,7 +15,10 @@ class NavBar extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.contacts),
             title: Text("Edit Emergency Contacts"),
-            onTap: () => null,
+            onTap: () => {
+              Navigator.push(
+                  context,MaterialPageRoute(builder: (context)=>AddContactsPage()))
+            },
           ),
           Divider(),
           ListTile(

@@ -1,28 +1,46 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:telephony/telephony.dart';
 import 'package:getlocation/NavBar.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'db/db_services.dart';
+import 'model/contactsm.dart';
+
 void main() {
   runApp(MyApp());
 }
 
 // Custom Methods Start
+
 String createLocationLink(double lat, double lon) {
   String link = "https://www.google.com/maps/search/?api=1&query=$lat%2C$lon";
   return link;
 }
 
-List contacts = ["8115601626"];
-
-void SMS(List recipients, String message) async {
-  Telephony telephony = Telephony.instance;
-  for (var rec in contacts) {
-    await telephony.sendSms(to: rec, message: message);
+void SMS(String message) async {
+  final Telephony telephony = Telephony.instance;
+  List<TContact>savedcontacts = await DataBaseHelper().getContactList();
+  List numbers = [];
+  if(savedcontacts.length == 0){
+    Fluttertoast.showToast(msg: "No contacts");
+  }else{
+    Fluttertoast.showToast(msg: "Sending SOS...");
+    bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
+    if(permissionsGranted == true) {
+      for(var nums in savedcontacts){
+        numbers.add(nums.number.substring(nums.number.length - 10));
+      }
+      print(numbers);
+      for (var rec in numbers) {
+        await telephony.sendSms(
+            to: rec, message: message);
+      }
+    }
   }
+
 }
 
 // Custom Methods End
@@ -94,7 +112,7 @@ class _HomepageState extends State<Homepage> {
 
   Future<void> GetAddressFromLatLong(Position position) async {
     List<Placemark> placemarks =
-        await placemarkFromCoordinates(position.latitude, position.longitude);
+    await placemarkFromCoordinates(position.latitude, position.longitude);
     print(placemarks);
     // Placemark place = placemarks[0];
     // Address =
@@ -127,7 +145,7 @@ class _HomepageState extends State<Homepage> {
                   GetAddressFromLatLong(position);
                   String msg =
                       "Test Message. Ignore It $location"; //TODO: Change the message
-                  SMS(contacts, msg);
+                  SMS(msg);
                 },
                 child: Text(
                   'Send SOS',
